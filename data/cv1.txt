@@ -1,0 +1,87 @@
+Currículum Vitae
+Datos Personales
+Nombre: Martín González Pérez
+
+DNI: 30.456.789
+
+Fecha de nacimiento: 14 de julio de 1990
+
+Lugar de residencia: Rosario, Santa Fe, Argentina
+
+Teléfono: +54 9 341 654-3210
+
+Correo electrónico: martingp@gmail.com
+
+LinkedIn: linkedin.com/in/martingp
+
+Perfil Profesional
+Ingeniero en Sistemas con más de 8 años de experiencia en desarrollo backend, administración de infraestructura en la nube y prácticas DevOps. Apasionado por la automatización, la mejora continua y el trabajo en equipos multidisciplinarios. Experiencia liderando proyectos en entornos ágiles con foco en resultados y escalabilidad.
+
+Experiencia Laboral
+Senior DevOps Engineer – Globant
+📍 Remoto – (Jul 2021 – Actualidad)
+
+Automatización de pipelines CI/CD con GitHub Actions y Jenkins.
+
+Implementación de infraestructura como código con Terraform y Ansible.
+
+Migración de cargas de trabajo a Kubernetes (EKS + Helm).
+
+Monitoreo con Prometheus, Grafana y alertas vía Slack.
+
+Soporte de tercer nivel para incidentes críticos.
+
+Backend Developer – Mercado Libre
+📍 Buenos Aires – (Ago 2017 – Jun 2021)
+
+Desarrollo de microservicios en Python y Node.js.
+
+Integración con sistemas internos vía Kafka y REST APIs.
+
+Testing automatizado con PyTest, Postman y Swagger.
+
+Participación activa en el ciclo de vida del software (desde diseño hasta producción).
+
+Técnico en Soporte IT – Datacom
+📍 Rosario – (Ene 2015 – Jul 2017)
+
+Gestión de servidores Linux y Windows.
+
+Configuración de redes y firewalls.
+
+Atención a usuarios y resolución de incidencias.
+
+Educación
+Ingeniería en Sistemas
+Universidad Nacional de Rosario – (2010 – 2016)
+
+Certificaciones
+
+Certified Kubernetes Administrator (CKA) – CNCF (2025)
+
+AWS Solutions Architect Associate – Amazon (2024)
+
+Scrum Foundation Professional – CertiProf (2023)
+
+Conocimientos Técnicos
+Lenguajes: Python, Bash, JavaScript, Go
+
+Contenedores: Docker, Kubernetes, Podman
+
+Cloud: AWS (EC2, S3, RDS, Lambda), GCP
+
+DevOps: Jenkins, GitHub Actions, Terraform, Ansible
+
+Bases de Datos: PostgreSQL, MongoDB, Redis
+
+Monitoring: Prometheus, Grafana, Loki
+
+Metodologías: Scrum, Kanban
+
+Idiomas
+Español: Nativo
+
+Inglés: Intermedio-avanzado (B2+)
+
+Referencias
+Disponibles a solicitud.

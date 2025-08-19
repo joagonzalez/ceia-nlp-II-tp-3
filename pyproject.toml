@@ -1,0 +1,21 @@
+[project]
+name = "ceia-nlp-ii-tp-3"
+version = "0.1.0"
+description = "Agent based Chatbot using vector databases and LLMs to enhance responses about Cvitae."
+authors = [{name = "Joaquin Gonzalez", email = "joagonzalez@gmail.com"}]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dash>=3.2.0",
+    "dash-bootstrap-components>=2.0.3",
+    "dotenv>=0.9.9",
+    "groq>=0.31.0",
+    "httpx>=0.28.1",
+    "langgraph>=0.6.5",
+    "mypy>=1.17.1",
+    "nltk>=3.9.1",
+    "pinecone>=7.3.0",
+    "pytest>=8.4.1",
+    "requests>=2.32.5",
+    "ruff>=0.12.9",
+]
