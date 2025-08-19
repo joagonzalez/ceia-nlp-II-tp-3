@@ -4,8 +4,8 @@ install:
 ui:
 	uv run ui.py
 	
-run:
-	uv run run.py
+cli:
+	uv run run.py $(ARGS)
 
 typehint:
 	uv run mypy src/
