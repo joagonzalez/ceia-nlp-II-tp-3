@@ -1,0 +1,49 @@
+Datos Personales
+
+Nombre: Diego Ramírez Cornejo
+
+DNI: 28.765.432
+
+Fecha de nacimiento: 29 de diciembre de 1988
+
+Lugar de residencia: Lima, Perú
+
+Teléfono: +51 987 654 321
+
+Correo: diegorc.devops@gmail.com
+
+LinkedIn: linkedin.com/in/diegorc
+
+Perfil Profesional
+Ingeniero en Informática con 12 años de experiencia en infraestructura cloud, virtualización y networking. Especialista en automatización y Kubernetes. Experiencia en consultoría y liderazgo de equipos DevOps.
+
+Experiencia Laboral
+
+Principal DevOps Consultant – ThoughtWorks
+📍 Remoto – (2021 – Actualidad)
+
+Diseño de pipelines multi-cloud.
+
+Despliegues híbridos AWS/GCP.
+
+Análisis de performance y optimización de recursos.
+
+Systems Engineer – Telefónica
+📍 Lima – (2014 – 2021)
+
+Administración de VMware y OpenStack.
+
+Gestión de networking y firewalls.
+
+Migraciones de sistemas legacy a cloud.
+
+Educación
+Ingeniería de Sistemas – Pontificia Universidad Católica del Perú (2006 – 2012)
+
+Certificaciones
+
+Red Hat Certified Engineer (RHCE) – 2025
+
+CKA – CNCF (2024)
+
+AWS Security Specialty (2022)

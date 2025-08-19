@@ -1,0 +1,49 @@
+Datos Personales
+
+Nombre: Javier López Medina
+
+DNI: 40.987.654
+
+Fecha de nacimiento: 3 de septiembre de 1998
+
+Lugar de residencia: Rosario, Argentina
+
+Teléfono: +54 9 341 234-5678
+
+Correo: javier.lopez98@gmail.com
+
+LinkedIn: linkedin.com/in/javierlopez98
+
+Perfil Profesional
+Técnico en Sistemas con 2 años de experiencia en soporte IT y administración básica de servidores Windows/Linux. Enfoque en resolución de incidencias, atención a usuarios y mantenimiento de equipos. Motivado por seguir aprendiendo y especializarse en cloud y redes.
+
+Experiencia Laboral
+
+Soporte Técnico – Arcor
+📍 Rosario – (2023 – Actualidad)
+
+Atención a usuarios nivel 1 y 2.
+
+Configuración de impresoras y dispositivos de red.
+
+Gestión de tickets con ServiceNow.
+
+Instalación y mantenimiento de software corporativo.
+
+Prácticas Profesionales – Municipalidad de Rosario
+📍 Rosario – (2022 – 2023)
+
+Mantenimiento de PCs.
+
+Soporte en sala de servidores.
+
+Configuración de cuentas de correo y accesos.
+
+Educación
+Tecnicatura en Informática – UTN Rosario (2020 – 2023)
+
+Certificaciones
+
+ITIL Foundation v4 (2023)
+
+Cisco CCNA Routing & Switching (en curso)

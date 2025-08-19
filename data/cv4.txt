@@ -1,0 +1,47 @@
+Datos Personales
+
+Nombre: Camila Herrera Suárez
+
+DNI: 35.654.321
+
+Fecha de nacimiento: 5 de febrero de 1995
+
+Lugar de residencia: Santiago, Chile
+
+Teléfono: +56 9 8765 4321
+
+Correo: cami.herrera.cloud@gmail.com
+
+LinkedIn: linkedin.com/in/camilaherrera
+
+Perfil Profesional
+Ingeniera de Software con foco en automatización de infraestructuras cloud y DevSecOps. Más de 6 años de experiencia en Azure y AWS, con especialización en pipelines CI/CD, seguridad y cumplimiento.
+
+Experiencia Laboral
+
+DevOps Engineer – BCI (Banco de Crédito e Inversiones)
+📍 Santiago – (2019 – Actualidad)
+
+Despliegue en Azure DevOps.
+
+Seguridad y auditoría con Azure Policy.
+
+Contenedores en AKS y OpenShift.
+
+Software Developer – LATAM Airlines
+📍 Santiago – (2016 – 2019)
+
+Desarrollo de APIs en Java y Spring Boot.
+
+Implementación de pruebas automáticas con JUnit.
+
+Educación
+Ingeniería Civil Informática – Universidad de Chile (2012 – 2017)
+
+Certificaciones
+
+Microsoft Certified: Azure Solutions Architect Expert (2024)
+
+AWS Certified DevOps Engineer – Professional (2023)
+
+Scrum Foundation Professional (2021)

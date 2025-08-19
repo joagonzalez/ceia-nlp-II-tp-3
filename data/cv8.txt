@@ -1,0 +1,49 @@
+Datos Personales
+
+Nombre: Sofía Martínez Cabrera
+
+DNI: 41.234.567
+
+Fecha de nacimiento: 11 de mayo de 1999
+
+Lugar de residencia: Córdoba, Argentina
+
+Teléfono: +54 9 351 987-6543
+
+Correo: sofimc.soporte@gmail.com
+
+LinkedIn: linkedin.com/in/sofiamartinez
+
+Perfil Profesional
+Especialista en soporte técnico con 3 años de experiencia en helpdesk y administración de usuarios en entornos Microsoft 365. Habilidades en resolución de problemas técnicos, atención al cliente y documentación de procedimientos.
+
+Experiencia Laboral
+
+Helpdesk Analyst – Banco Galicia
+📍 Córdoba – (2021 – Actualidad)
+
+Administración de usuarios en Active Directory.
+
+Soporte a aplicaciones bancarias críticas.
+
+Configuración de equipos y laptops corporativas.
+
+Capacitación a usuarios en buenas prácticas IT.
+
+Técnico en Soporte – Freelance
+📍 Córdoba – (2020 – 2021)
+
+Instalación de redes WiFi y cableadas.
+
+Limpieza y optimización de equipos.
+
+Asistencia remota a clientes particulares.
+
+Educación
+Tecnicatura Universitaria en Programación – UTN Córdoba (2018 – 2021)
+
+Certificaciones
+
+Microsoft Certified: Azure Fundamentals (2023)
+
+CompTIA A+ (2022)

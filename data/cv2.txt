@@ -1,0 +1,51 @@
+Datos Personales
+
+Nombre: Laura Fernández López
+
+DNI: 32.987.654
+
+Fecha de nacimiento: 22 de marzo de 1992
+
+Lugar de residencia: Córdoba, Argentina
+
+Teléfono: +54 9 351 789-4561
+
+Correo: laura.fernandez.dev@gmail.com
+
+LinkedIn: linkedin.com/in/laurafernandez
+
+Perfil Profesional
+Ingeniera en Computación con 7 años de experiencia en desarrollo de microservicios, cloud y seguridad informática. Amplia trayectoria en AWS y Kubernetes, con pasión por diseñar arquitecturas escalables y resilientes. Experiencia en liderazgo técnico y mentoría de equipos.
+
+Experiencia Laboral
+
+Cloud Engineer – Accenture
+📍 Remoto – (2020 – Actualidad)
+
+Diseño y despliegue de arquitecturas en AWS (VPC, IAM, ECS).
+
+Automatización con Terraform y Pulumi.
+
+Implementación de políticas de seguridad y cumplimiento (CIS, ISO 27001).
+
+Optimización de costos en cloud.
+
+Backend Developer – Despegar.com
+📍 Buenos Aires – (2016 – 2020)
+
+Desarrollo en Python (Django, Flask).
+
+Integraciones con APIs externas.
+
+Diseño de pipelines CI/CD en GitLab.
+
+Educación
+Licenciatura en Ciencias de la Computación – UNC (2011 – 2016)
+
+Certificaciones
+
+AWS Solutions Architect Professional (2024)
+
+Certified Kubernetes Security Specialist (CKS) – CNCF (2023)
+
+Scrum Master Certified – ScrumStudy (2022)

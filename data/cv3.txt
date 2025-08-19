@@ -1,0 +1,49 @@
+Datos Personales
+
+Nombre: Sebastián Torres Ramírez
+
+DNI: 31.123.456
+
+Fecha de nacimiento: 10 de octubre de 1989
+
+Lugar de residencia: Montevideo, Uruguay
+
+Teléfono: +598 91 456 789
+
+Correo: storres.it@gmail.com
+
+LinkedIn: linkedin.com/in/sebatori
+
+Perfil Profesional
+Arquitecto de Software con más de 10 años de experiencia en DevOps, microservicios y sistemas distribuidos. Especialista en observabilidad y SRE, con enfoque en confiabilidad, escalabilidad y performance.
+
+Experiencia Laboral
+
+Site Reliability Engineer – Globant
+📍 Remoto – (2019 – Actualidad)
+
+Observabilidad con Grafana, Prometheus y Jaeger.
+
+Implementación de SLIs, SLOs y SLAs.
+
+Respuesta a incidentes críticos y postmortems.
+
+Senior Backend Engineer – Ualá
+📍 Buenos Aires – (2015 – 2019)
+
+Microservicios en Go y Kotlin.
+
+Mensajería con Kafka y RabbitMQ.
+
+Escalabilidad en GCP con Kubernetes.
+
+Educación
+Ingeniería en Informática – ORT Uruguay (2007 – 2013)
+
+Certificaciones
+
+Google Professional Cloud Architect (2025)
+
+CKA – CNCF (2024)
+
+ITIL Foundation v4 (2022)

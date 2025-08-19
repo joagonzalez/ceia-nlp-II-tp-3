@@ -1,0 +1,49 @@
+Datos Personales
+
+Nombre: Andrés Gutiérrez Romero
+
+DNI: 39.876.543
+
+Fecha de nacimiento: 8 de noviembre de 1997
+
+Lugar de residencia: Buenos Aires, Argentina
+
+Teléfono: +54 9 11 7654-3210
+
+Correo: andresgtr97@gmail.com
+
+LinkedIn: linkedin.com/in/andresgutierrez
+
+Perfil Profesional
+Técnico IT con 4 años de experiencia en soporte a usuarios, administración básica de redes y sistemas operativos. Fuerte orientación al cliente, capacidad de resolución rápida de problemas y conocimientos en virtualización básica.
+
+Experiencia Laboral
+
+Soporte IT – Techint
+📍 Buenos Aires – (2021 – Actualidad)
+
+Administración de cuentas corporativas.
+
+Soporte a entornos Windows y Linux.
+
+Configuración de VPNs para trabajo remoto.
+
+Manejo de inventario de hardware.
+
+Soporte Técnico – ISP local
+📍 Buenos Aires – (2019 – 2021)
+
+Atención telefónica a clientes residenciales.
+
+Configuración de routers y modems.
+
+Escalamiento de incidentes complejos a nivel 2.
+
+Educación
+Analista de Sistemas – Instituto ORT (2016 – 2019)
+
+Certificaciones
+
+Google IT Support Professional (2023)
+
+Cisco CCNA (2022)

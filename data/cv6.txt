@@ -1,0 +1,49 @@
+Datos Personales
+
+Nombre: Valentina Rodríguez Méndez
+
+DNI: 33.112.223
+
+Fecha de nacimiento: 12 de junio de 1993
+
+Lugar de residencia: Bogotá, Colombia
+
+Teléfono: +57 320 654 7890
+
+Correo: valen.rodriguez.cloud@gmail.com
+
+LinkedIn: linkedin.com/in/valentinarm
+
+Perfil Profesional
+Ingeniera de Sistemas con experiencia en Data Engineering, DevOps y Cloud Computing. Más de 8 años trabajando con big data, pipelines ETL y despliegues escalables en AWS y GCP.
+
+Experiencia Laboral
+
+Data & Cloud Engineer – Nubank
+📍 Remoto – (2020 – Actualidad)
+
+Desarrollo de pipelines en Spark y Airflow.
+
+Modelado de datos en BigQuery y Redshift.
+
+Infraestructura con Terraform.
+
+Backend Engineer – Rappi
+📍 Bogotá – (2016 – 2020)
+
+Microservicios en Node.js y Go.
+
+Integración con sistemas de pagos.
+
+Automatización de despliegues con Docker.
+
+Educación
+Ingeniería en Sistemas – Universidad de los Andes (2011 – 2016)
+
+Certificaciones
+
+Google Professional Data Engineer (2024)
+
+AWS Solutions Architect Associate (2023)
+
+Scrum Product Owner (2022)
