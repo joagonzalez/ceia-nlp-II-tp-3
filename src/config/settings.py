@@ -19,6 +19,7 @@ DATASET = [
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX = "ceia-nlp-tp3-index"
+PINECONE_PERSONA_INDEX = "ceia-nlp-tp3-persona-index"
 PINECONE_LOAD_DATA = False
 PINECONE_EMBEDDING_MODEL = "llama-text-embed-v2"
 PINECONE_NAMESPACE = "ceia-nlp-tp3-namespace"

@@ -129,7 +129,7 @@ def load_data(
 ):
     """Load CV data into the vector database"""
     try:
-        from src.vectorService import load_data_into_vectordb
+        from src.vectorService import load_data_into_vectordb, load_persona_into_vectordb
         from src.config.settings import DATASET
         from src.groqService import GroqLLMWrapper
         
@@ -162,6 +162,13 @@ def load_data(
                 typer.echo(f"  Name: {cv_info['name']} {cv_info['lastname']}")
                 typer.echo(f"  Profile: {cv_info['profile_type']}")
                 typer.echo(f"  ID: {cv_info['person_id']}")
+                
+                # Load persona into vector database
+                load_persona_into_vectordb(
+                    name=cv_info['name'],
+                    lastname=cv_info['lastname'],
+                    person_id=cv_info['person_id'],
+                )
                 
                 # Load data into vector database with extracted info
                 load_data_into_vectordb(

@@ -6,6 +6,7 @@ from pinecone import Pinecone
 from typing import List, Optional
 
 from src.config.settings import PINECONE_INDEX
+from src.config.settings import PINECONE_PERSONA_INDEX
 from src.config.settings import PINECONE_API_KEY
 from src.config.settings import PINECONE_NAMESPACE
 from src.config.settings import PINECONE_TOPK_SEARCH
@@ -17,11 +18,32 @@ nltk.download('punkt')
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
 dense_index: Optional[object] = None
+persona_dense_index: Optional[object] = None
 
-def get_or_create_index():
+def get_or_create_index(index_name: str = PINECONE_INDEX) -> object:
     """Get the index, creating it if it doesn't exist"""
     global dense_index
+    global persona_dense_index
     
+    if index_name == PINECONE_PERSONA_INDEX:
+        if persona_dense_index is None:
+            # Check if index exists first
+            if not pc.has_index(PINECONE_PERSONA_INDEX):
+                print(f"Index {PINECONE_PERSONA_INDEX} does not exist. Creating it...")
+                pc.create_index_for_model(
+                    name=PINECONE_PERSONA_INDEX,
+                    cloud="aws",
+                    region="us-east-1",
+                    embed={
+                        "model": PINECONE_EMBEDDING_MODEL,
+                        "field_map": {"text": "canonical_name"}
+                    }
+                )
+                print(f"Index {PINECONE_PERSONA_INDEX} created successfully.")
+            
+            persona_dense_index = pc.Index(PINECONE_PERSONA_INDEX)
+        return persona_dense_index
+
     if dense_index is None:
         # Check if index exists first
         if not pc.has_index(PINECONE_INDEX):
@@ -73,6 +95,37 @@ def read_and_chunk_sentences(
         i += chunk_size - overlap
     return chunks
 
+def load_persona_into_vectordb(
+    name: str,
+    lastname: str,
+    person_id: str
+) -> None:
+    """
+    Loads a persona into the vector database.
+
+    Args:
+        name (str): Name of the person.
+        lastname (str): Last name of the person.
+        person_id (str): Unique identifier for the person.
+    """
+    index = get_or_create_index(index_name=PINECONE_PERSONA_INDEX)
+    
+    # Create a record for the persona
+    persona_record = {
+        "_id": f"{person_id}",
+        "canonical_name": f"{name} {lastname}", # embedding sobre el nombre y apellido
+        "name": name,
+        "lastname": lastname,
+        "category": "persona"
+    }
+    
+    # Upsert the record into the index
+    index.upsert_records(
+        namespace=PINECONE_NAMESPACE,
+        records=[persona_record]
+    )
+    time.sleep(10)  # Wait for the upserted vectors to be indexed
+
 def load_data_into_vectordb(
     dataset: List[str], 
     name: str,
@@ -94,9 +147,9 @@ def load_data_into_vectordb(
         category = category
         cv_chunks = []
         
-        for chunk in chunks:
+        for i, chunk in enumerate(chunks, start=1):
             cv_chunks.append({
-                "_id": f"cv_chunk_{len(cv_chunks) + 1}",
+                "_id": f"cv_chunk_{person_id}_{i}",
                 "chunk_text": chunk,
                 "category": category,
                 "name": name,
