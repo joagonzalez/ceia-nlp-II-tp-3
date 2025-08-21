@@ -246,14 +246,15 @@ Esto mejora la UX sin regex frágiles y evita repreguntas innecesarias.
 
 ## Estructura del repo
 
+    data/                     # CVs utilizados para el trabajo
     src/
       agent.py                # Grafo LangGraph: coref LLM, resolver persona, desambiguar, RAG CV, memoria
       vectorService.py        # search_similar(text, top_k, namespace, ui=False) → hits con fields
-      chatService.py          # utilidades para LLM / sesiones (si aplica)
       config/
         settings.py           # claves y nombres de índice/namespace, modelo Groq, umbrales, etc.
-    app_dash.py               # UI en Dash (misma lógica simple de la CLI)
-    run_agent.py              # CLI: loop readline con primera y segunda invocación
+    ui.py                     # UI en Dash (misma lógica simple de la CLI)
+    run.py                    # CLI: loop readline con primera y segunda invocación
+    plot.py                   # Export diagrama mermaid del grafo de la app LanGraph
     Makefile                  # targets: cli, ui, load-data
     requirements.txt
     README.md
