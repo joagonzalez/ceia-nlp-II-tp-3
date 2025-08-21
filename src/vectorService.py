@@ -172,7 +172,9 @@ def search_similar(
     text: str, 
     top_k: str = PINECONE_TOPK_SEARCH, 
     namespace: str = PINECONE_NAMESPACE, 
-    debug: bool = True
+    debug: bool = True,
+    ui: bool = True,
+    index: str = PINECONE_INDEX
     ) -> List[str]:
     """
     Searches for similar items in the vector database based on the input text.
@@ -188,9 +190,11 @@ def search_similar(
     """
     
     # View stats for the index
-    index = get_or_create_index()
+    index = get_or_create_index(index_name=index)
     stats = index.describe_index_stats()
-    print(stats)
+    
+    if debug:
+        print(stats)
 
     # Search the dense index
     results = dense_index.search(
@@ -208,8 +212,13 @@ def search_similar(
     for hit in results['result']['hits']:
         tmp = f"id: {hit['_id']:<5} | score: {round(hit['_score'], 2):<5} | category: {hit['fields']['category']:<10} | text: {hit['fields']['chunk_text']:<50}"
         if debug:
-            print(tmp)
-        data.append(tmp)
+            if ui:
+                print(tmp)
+        
+        if ui: 
+            data.append(tmp) 
+        else: 
+            data.append(hit)
         
     return data
 
