@@ -1,10 +1,7 @@
 """
 RAG sobre CVs con LangGraph + memoria corta por persona + Groq LLM.
 """
-import re
-import unicodedata
 from typing import TypedDict, List, Dict, Any
-from collections import deque, defaultdict
 
 from langgraph.graph import StateGraph, END
 
