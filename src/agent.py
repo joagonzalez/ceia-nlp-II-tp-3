@@ -32,25 +32,32 @@ class ShortMemory:
     """Memoria corta por (session_id, persona_id). Resetea si cambia la persona."""
     def __init__(self, max_turns: int = 4):
         self.max_turns = max_turns
-        self.buffers: Dict[tuple, deque] = defaultdict(lambda: deque(maxlen=self.max_turns))
+        self.buffers: Dict[tuple, List[Dict[str, str]]] = {}
         self.last_persona_by_session: Dict[str, str] = {}
 
     def get(self, session_id: str, persona_id: str) -> List[Dict[str, str]]:
-        return list(self.buffers[(session_id, persona_id)])
+        return self.buffers.get((session_id, persona_id), [])
 
     def append(self, session_id: str, persona_id: str, user_msg: str, assistant_msg: str):
-        buf = self.buffers[(session_id, persona_id)]
+        buf = self.buffers.setdefault((session_id, persona_id), [])
+        
         buf.append({"role": "user", "content": user_msg})
         buf.append({"role": "assistant", "content": assistant_msg})
+
+        # recortar a los últimos max_turns*2 (porque cada turno son 2 mensajes)
+        if len(buf) > self.max_turns * 2:
+            buf[:] = buf[-self.max_turns * 2:]
+
         self.last_persona_by_session[session_id] = persona_id
 
     def reset_if_person_changed(self, session_id: str, new_persona_id: str):
         last = self.last_persona_by_session.get(session_id)
         if last is not None and last != new_persona_id:
-            # limpiar todas las memorias de ese session (seguro)
+            # limpiar todas las memorias de esa sesión
             for key in list(self.buffers.keys()):
                 if key[0] == session_id:
                     del self.buffers[key]
+
 
 MEM = ShortMemory(max_turns=4)
 
@@ -410,12 +417,7 @@ def build_app():
         },
     )
 
-    # Cuando repregunta, el flujo termina provisionalmente: devuelvo la pregunta y el front espera respuesta del usuario.
-    # Si preferís que termine ahí, podés ir directo a END:
-    # g.add_edge("ask_user_short_disambiguation", END)
-
-    # Opción: que después del front-end la re‑invocación vuelva a entrar por 'decide_disambiguation'
-    # (porque la elección llega en disambiguation_choice):
+    # Cuando repregunta, el flujo termina provisionalmente: devuelve la pregunta y el front espera respuesta del usuario.
     g.add_edge("ask_user_short_disambiguation", END)
 
     # camino “normal”
@@ -430,49 +432,14 @@ def build_app():
 
 app = None
 
+# se implementa singletone
 def init_app():
     global app
     if app is None:
         app = build_app()
     return app
 
-# ========= EJEMPLO =========
+
 if __name__ == "__main__":
-    app = init_app()
-
-    print("=== Chat CV RAG con desambiguación ===")
-    session_id = "user-123"
-
-    while True:
-        try:
-            q = input("\nUsuario: ").strip()
-            if not q or q.lower() in {"exit", "quit"}:
-                break
-
-            # Primer invoke
-            s = app.invoke({
-                "session_id": session_id,
-                "query": q
-            })
-
-            answer = s.get("answer", "")
-            trace = s.get("trace", {})
-
-            print("\nAsistente:", answer)
-
-            # Caso ambigüedad → repregunta
-            if trace.get("need_user_input"):
-                choice = input("\nElige persona (número, nombre o ID): ").strip()
-                s2 = app.invoke({
-                    "session_id": session_id,
-                    "query": choice,
-                    "disambiguation_choice": choice,
-                    "candidates": s.get("candidates", [])
-                })
-                print("\nAsistente:", s2.get("answer", ""))
-
-        except KeyboardInterrupt:
-            print("\nSaliendo…")
-            break
-
+    pass
     
