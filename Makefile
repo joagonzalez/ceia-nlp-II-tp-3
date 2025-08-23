@@ -7,6 +7,9 @@ ui:
 cli:
 	uv run run.py $(ARGS)
 
+plot:
+	uv run plot.py
+
 typehint:
 	uv run mypy src/
 
