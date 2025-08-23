@@ -1,7 +1,8 @@
 """
 RAG sobre CVs con LangGraph + memoria corta por persona + Groq LLM.
 """
-from typing import TypedDict, List, Dict, Any
+import json
+from typing import TypedDict, List, Dict, Any, Literal
 
 from langgraph.graph import StateGraph, END
 
@@ -64,14 +65,15 @@ MEM = ShortMemory(max_turns=4)
 class AgentState(TypedDict, total=False):
     session_id: str
     query: str
-    candidates: List[Dict[str, Any]]     # {persona_id, name, score, source_name}
+    candidates: List[Dict[str, Any]]        # {persona_id, name, score, source_name}
     persona_ids: List[str]
     chunks: List[Dict[str, Any]]
     history: List[Dict[str, str]]
     answer: str
     trace: Dict[str, Any]
-    disambiguation_choice: str           # NUEVO: "1" / "2" / persona_id / nombre
+    disambiguation_choice: str              # NUEVO: "1" / "2" / persona_id / nombre
     reuse_last_persona: bool
+    mode: Literal["multi","single"] 
 
 # ========= LLAMADAS A PINECONE =========
 def _ensure_hits(obj):
@@ -172,8 +174,7 @@ def pinecone_query_cv(query_text: str, persona_ids: List[str]) -> List[Dict[str,
     out.sort(key=lambda x: x["score"], reverse=True)
     return out[:TOPK_RETRIEVE]
 
-
-# ========= GROQ LLM =========
+# ========= SYSTEM PROMPTS PARA DISTINTAS TAREAS =========
 SYSTEM = (
     "Eres un asistente que responde SOLO con información provista en el contexto.\n"
     "- Cita fragmentos con referencias [#] y al final lista (id=... | sección/empresa si aplica).\n"
@@ -191,6 +192,13 @@ COREF_SYS = (
     "- Si no hay persona previa, responde 'no'."
 )
 
+EXTRACT_NAMES_SYS = """
+Extrae todos los nombres de personas mencionados en el texto del usuario.
+Responde SOLO un JSON array de strings, sin texto adicional.
+Ejemplo: ["Camila", "Valentina Rodríguez"]
+"""
+
+# ========= GROQ LLM =========
 def llm_chat(system: str, user: str) -> str:
     resp = groq_client.chat.completions.create(
         model=GROQ_LLM_MODEL,
@@ -254,7 +262,76 @@ def llm_yesno(system: str, user: str) -> bool:
     text = (resp.choices[0].message.content or "").strip().lower()
     return "yes" in text or "sí" in text or "si" in text
 
+def extract_names_with_llm(q: str) -> list[str]:
+    raw = llm_chat(EXTRACT_NAMES_SYS, q)
+    try:
+        names = json.loads(raw)
+        print(names)
+        return [n.strip() for n in names if isinstance(n, str) and n.strip()]
+    except Exception:
+        return []
+    
 # ========= NODOS =========
+def classify_mode_node(state: AgentState) -> AgentState:
+    q = (state["query"] or "").strip()
+
+    # Extraer nombres con LLM (o regex si preferís)
+    names = extract_names_with_llm(q)
+
+    if len(names) >= 2:
+        mode = "multi"
+    else:
+        mode = "single"   # fallback por defecto
+
+    trace = {**state.get("trace", {}), "parsed_names": names}
+    print("[classify_mode]", {"query": q, "mode": mode, "names": names})
+    return {**state, "mode": mode, "trace": trace}
+
+def route_by_mode(state: AgentState) -> str:
+    mode = (state.get("mode") or "single").lower()
+    next_node = "resolve_people_multi" if mode == "multi" else "decide_coref_with_llm"
+    print("[route_by_mode]", {"mode": mode, "names": state.get("trace", {}).get("parsed_names"), "next": next_node})
+    return next_node
+
+def resolve_people_multi_node(state: AgentState) -> AgentState:
+    names = state.get("trace", {}).get("parsed_names") or extract_names_with_llm(state["query"])
+    persona_ids = []
+    for name in names:
+        hits = pinecone_query_people([name])[:1]
+        if hits:
+            persona_ids.append(hits[0]["persona_id"])
+    trace = {**state.get("trace", {}), "multi_names_used": names, "multi_pids": persona_ids}
+    return {**state, "persona_ids": persona_ids, "trace": trace}
+
+def retrieve_cv_chunks_multi_node(state: AgentState) -> AgentState:
+    pids = state.get("persona_ids", [])
+    chunks = pinecone_query_cv(state["query"], pids) if pids else []
+    return {**state, "chunks": chunks}
+
+def generate_answer_multi_node(state: AgentState) -> AgentState:
+    # reparto de contexto equitativo por persona
+    pids = state.get("persona_ids", [])
+    by_pid = {}
+    for c in state.get("chunks", []):
+        pid = str(c["meta"].get("person_id"))
+        by_pid.setdefault(pid, []).append(c)
+    k_each = max(1, TOPK_CONTEXT // max(1, len(pids) or 1))
+    chosen = []
+    for pid in pids:
+        chosen += by_pid.get(pid, [])[:k_each]
+    if len(chosen) < TOPK_CONTEXT:
+        remainder = [c for pid in pids for c in by_pid.get(pid, [])[k_each:]]
+        chosen += remainder[:(TOPK_CONTEXT - len(chosen))]
+    context = build_context(chosen)
+    prompt = (
+        f"Contexto (múltiples personas):\n{context}\n\n"
+        f"Pregunta: {state['query']}\n"
+        f"Responde en secciones por persona (## Nombre/ID), con bullets y citas [#]."
+    )
+    answer = llm_chat(SYSTEM, prompt)
+    return {**state, "answer": answer}
+
+# Single
 def resolve_people_node(state: AgentState) -> AgentState:
     """
     - Siempre busca candidatos en la vector DB a partir de state['query'].
@@ -392,20 +469,45 @@ def save_memory_node(state: AgentState) -> AgentState:
 # ========= GRAFO =========
 def build_app():
     g = StateGraph(AgentState)
-    g.add_node("decide_coref_with_llm", decide_coref_with_llm_node) 
+
+    # --- Nodos nuevos (router + multi) ---
+    g.add_node("classify_mode", classify_mode_node)
+    g.add_node("resolve_people_multi", resolve_people_multi_node)
+    g.add_node("retrieve_cv_chunks_multi", retrieve_cv_chunks_multi_node)
+    g.add_node("generate_answer_multi", generate_answer_multi_node)
+
+    # --- Nodos existentes (single/stateful) ---
+    g.add_node("decide_coref_with_llm", decide_coref_with_llm_node)
     g.add_node("resolve_people", resolve_people_node)
     g.add_node("decide_disambiguation", decide_disambiguation_node)
-    g.add_node("ask_user_short_disambiguation", ask_user_short_disambiguation_node)  # <- NUEVO
+    g.add_node("ask_user_short_disambiguation", ask_user_short_disambiguation_node)
     g.add_node("retrieve_cv_chunks", retrieve_cv_chunks_node)
     g.add_node("load_memory", load_memory_node)
     g.add_node("generate_answer", generate_answer_node)
     g.add_node("save_memory", save_memory_node)
 
-    g.set_entry_point("decide_coref_with_llm")
+    # Entry: router de modo
+    g.set_entry_point("classify_mode")
+
+    # Router condicional a multi o single
+    g.add_conditional_edges(
+        "classify_mode",
+        route_by_mode,
+        {
+            "resolve_people_multi": "resolve_people_multi",   # multi (stateless)
+            "decide_coref_with_llm": "decide_coref_with_llm", # single (stateful)
+        },
+    )
+
+    # --- Camino MULTI (stateless) ---
+    g.add_edge("resolve_people_multi", "retrieve_cv_chunks_multi")
+    g.add_edge("retrieve_cv_chunks_multi", "generate_answer_multi")
+    g.add_edge("generate_answer_multi", END)
+
+    # --- Camino SINGLE (stateful) — tu flujo actual ---
     g.add_edge("decide_coref_with_llm", "resolve_people")
     g.add_edge("resolve_people", "decide_disambiguation")
 
-    # router:
     g.add_conditional_edges(
         "decide_disambiguation",
         route_after_decision,
@@ -415,17 +517,13 @@ def build_app():
         },
     )
 
-    # Cuando repregunta, el flujo termina provisionalmente: devuelve la pregunta y el front espera respuesta del usuario.
     g.add_edge("ask_user_short_disambiguation", END)
-
-    # camino “normal”
     g.add_edge("retrieve_cv_chunks", "load_memory")
     g.add_edge("load_memory", "generate_answer")
     g.add_edge("generate_answer", "save_memory")
     g.add_edge("save_memory", END)
 
     app = g.compile()
-    
     return app
 
 app = None
