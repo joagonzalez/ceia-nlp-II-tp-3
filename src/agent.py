@@ -137,44 +137,41 @@ def pinecone_query_people(queries: List[str]) -> List[Dict[str, Any]]:
 
 def pinecone_query_cv(query_text: str, persona_ids: List[str]) -> List[Dict[str, Any]]:
     """
-    Busca chunks de CV usando tu search_similar() en el namespace de CVs,
-    y filtra client-side por person_id (oversample para no perder recall).
-    Estructura de salida (por item):
-    {
-        "chunk_id": str,
-        "text": str,
-        "meta": dict,   # fields originales del índice
-        "score": float
-    }
+    Busca chunks de CV usando search_similar() en el índice de CVs,
+    filtrando server-side por person_id.
     """
-    pid_set = {str(x) for x in (persona_ids or [])}
-    oversample = max(TOPK_RETRIEVE * 3, 100)  # traemos más y filtramos después
+    pid_list = [str(x) for x in (persona_ids or [])]
+    if not pid_list:
+        return []
+
+    # Filtro server-side por uno o varios IDs
+    where = {"person_id": {"$eq": pid_list[0]}} if len(pid_list) == 1 else {"person_id": {"$in": pid_list}}
 
     hits = _ensure_hits(
         search_similar(
             text=query_text,
-            top_k=oversample,
+            top_k=TOPK_RETRIEVE,
             namespace=PINECONE_NAMESPACE,
             debug=False,
-            index=PINECONE_INDEX,
-            ui=False,  # dicts con _id, _score, fields
+            ui=False,             # dicts con _id, _score, fields
+            index=PINECONE_INDEX, # índice de CVs
+            metadata_filter=where,
         )
     )
 
-    filtered: List[Dict[str, Any]] = []
+    out: List[Dict[str, Any]] = []
     for m in hits:
         fields = m.get("fields", {}) or {}
-        if pid_set and str(fields.get("person_id")) not in pid_set:
-            continue
-        filtered.append({
+        out.append({
             "chunk_id": fields.get("chunk_id") or m.get("_id"),
             "text": fields.get("chunk_text", ""),
             "meta": fields,
             "score": float(m.get("_score", 0.0)),
         })
 
-    filtered.sort(key=lambda x: x["score"], reverse=True)
-    return filtered[:TOPK_RETRIEVE]
+    out.sort(key=lambda x: x["score"], reverse=True)
+    return out[:TOPK_RETRIEVE]
+
 
 # ========= GROQ LLM =========
 SYSTEM = (

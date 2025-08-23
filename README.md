@@ -5,6 +5,19 @@ RAG y desambiguación por persona.**
 
 Repo: https://github.com/joagonzalez/ceia-nlp-II-tp-3
 
+**Características principales de la implementación:**
+
+- **RAG sobre CVs**: combina consultas semánticas en Pinecone con generación de respuestas usando Groq LLM.  
+- **Memoria corta por persona**: conserva hasta *N* turnos de contexto por `(session_id, persona_id)`, reseteándose automáticamente cuando cambia la persona en foco.  
+- **Desambiguación de candidatos**: si una consulta coincide con múltiples personas, propone opciones (1/2/3) o permite elegir por nombre/ID.  
+- **Coreference Handling**: un clasificador binario (LLM) decide si una pregunta se refiere a la misma persona previa o introduce una nueva.  
+- **Índices especializados en Pinecone**:  
+  - *People Index* → identifica candidatos por nombre.  
+  - *CV Index* → recupera chunks relevantes de los CVs, con filtro server-side por `person_id`.  
+- **Respuestas con contexto y citas**: las respuestas del agente incluyen bullets claros (Experiencia, Educación, Skills) y referencias `[ # ]`.  
+- **Arquitectura basada en grafo (LangGraph)**: cada nodo representa un paso (coref, búsqueda, desambiguación, retrieval, generación, memoria), con control de flujo condicional basado en una clase de control de estados *AgentState*.
+
+
 
 <img src="doc/architecture.png" />
 

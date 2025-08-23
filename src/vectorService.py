@@ -174,49 +174,59 @@ def search_similar(
     namespace: str = PINECONE_NAMESPACE, 
     debug: bool = True,
     ui: bool = True,
-    index: str = PINECONE_INDEX,   # si querés, renómbralo a index_name
+    metadata_filter: dict | None = None,
+    index: str = PINECONE_INDEX,
 ):
     """
-    Busca ítems similares en Pinecone y retorna los hits tal como vienen del SDK.
+    Busca ítems similares en Pinecone y retorna los hits (dicts raw).
     Si ui=True, imprime un preview amigable sin asumir campos.
     """
     # Obtener el índice correcto (personas vs cv)
     idx = get_or_create_index(index_name=index)
 
     # Stats (útil para verificar namespace/volumen)
-    stats = idx.describe_index_stats()
     if debug:
-        print(stats)
+        try:
+            print(idx.describe_index_stats())
+        except Exception as e:
+            print(f"[warn] describe_index_stats() falló: {e}")
 
     # Asegurar tipo entero
     try:
         top_k_int = int(top_k)
     except Exception:
-        top_k_int = PINECONE_TOPK_SEARCH
+        top_k_int = int(PINECONE_TOPK_SEARCH)
+
+    # Construir payload de query
+    query_payload = {
+        "top_k": top_k_int,
+        "inputs": {"text": text},
+    }
+    # Inyectar filtro si viene
+    if metadata_filter:
+        query_payload["filter"] = metadata_filter
 
     # Consulta
-    results = idx.search(
-        namespace=namespace,
-        query={
-            "top_k": top_k_int,
-            "inputs": {"text": text}
-        }
-    )
+    results = idx.search(namespace=namespace, query=query_payload)
 
-    hits = results.get("result", {}).get("hits", []) or []
+    hits = (results.get("result") or {}).get("hits", []) or []
 
     # Solo imprimir si ui=True, y sin asumir 'chunk_text'
     if debug and ui:
         for h in hits:
             fields = h.get("fields", {}) or {}
-            preview_text = fields.get("chunk_text") or fields.get("canonical_name") or fields.get("name") or ""
+            preview_text = (
+                fields.get("chunk_text")
+                or fields.get("canonical_name")
+                or fields.get("name")
+                or ""
+            )
             category = fields.get("category", "")
             print(
                 f"id: {h.get('_id')} | score: {round(h.get('_score', 0.0), 3)} | "
                 f"category: {category} | text: {str(preview_text)[:80]}"
             )
 
-    # Devolver siempre los dicts "raw" (tus callers esperan esto con ui=False)
     return hits
 
 
