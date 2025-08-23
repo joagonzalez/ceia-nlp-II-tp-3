@@ -170,57 +170,55 @@ def load_data_into_vectordb(
 
 def search_similar(
     text: str, 
-    top_k: str = PINECONE_TOPK_SEARCH, 
+    top_k: int = PINECONE_TOPK_SEARCH, 
     namespace: str = PINECONE_NAMESPACE, 
     debug: bool = True,
     ui: bool = True,
-    index: str = PINECONE_INDEX
-    ) -> List[str]:
+    index: str = PINECONE_INDEX,   # si querés, renómbralo a index_name
+):
     """
-    Searches for similar items in the vector database based on the input text.
-
-    Args:
-        text (str): _Description of the text to search for.
-        top_k (str, optional): How many similar entries should this function return. Defaults to PINECONE_TOPK_SEARCH.
-        namespace (str, optional): Name of the namespace. Defaults to PINECONE_NAMESPACE.
-        debug (bool, optional): debug flag for troubleshooting. Defaults to True.
-
-    Returns:
-        List[str]: List of similar items found in the vector database.
+    Busca ítems similares en Pinecone y retorna los hits tal como vienen del SDK.
+    Si ui=True, imprime un preview amigable sin asumir campos.
     """
-    
-    # View stats for the index
-    index = get_or_create_index(index_name=index)
-    stats = index.describe_index_stats()
-    
+    # Obtener el índice correcto (personas vs cv)
+    idx = get_or_create_index(index_name=index)
+
+    # Stats (útil para verificar namespace/volumen)
+    stats = idx.describe_index_stats()
     if debug:
         print(stats)
 
-    # Search the dense index
-    results = dense_index.search(
+    # Asegurar tipo entero
+    try:
+        top_k_int = int(top_k)
+    except Exception:
+        top_k_int = PINECONE_TOPK_SEARCH
+
+    # Consulta
+    results = idx.search(
         namespace=namespace,
         query={
-            "top_k": top_k,
-            "inputs": {
-                'text': text
-            }
+            "top_k": top_k_int,
+            "inputs": {"text": text}
         }
     )
 
-    # Print the results
-    data = []
-    for hit in results['result']['hits']:
-        tmp = f"id: {hit['_id']:<5} | score: {round(hit['_score'], 2):<5} | category: {hit['fields']['category']:<10} | text: {hit['fields']['chunk_text']:<50}"
-        if debug:
-            if ui:
-                print(tmp)
-        
-        if ui: 
-            data.append(tmp) 
-        else: 
-            data.append(hit)
-        
-    return data
+    hits = results.get("result", {}).get("hits", []) or []
+
+    # Solo imprimir si ui=True, y sin asumir 'chunk_text'
+    if debug and ui:
+        for h in hits:
+            fields = h.get("fields", {}) or {}
+            preview_text = fields.get("chunk_text") or fields.get("canonical_name") or fields.get("name") or ""
+            category = fields.get("category", "")
+            print(
+                f"id: {h.get('_id')} | score: {round(h.get('_score', 0.0), 3)} | "
+                f"category: {category} | text: {str(preview_text)[:80]}"
+            )
+
+    # Devolver siempre los dicts "raw" (tus callers esperan esto con ui=False)
+    return hits
+
 
 if __name__ == "__main__":
     try:

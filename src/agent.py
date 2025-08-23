@@ -10,6 +10,8 @@ from groq import Groq
 from src.config.settings import GROQ_API_KEY
 from src.config.settings import GROQ_LLM_MODEL
 from src.config.settings import PINECONE_NAMESPACE
+from src.config.settings import PINECONE_INDEX
+from src.config.settings import PINECONE_PERSONA_INDEX
 
 from src.vectorService import search_similar
 
@@ -18,7 +20,7 @@ from src.vectorService import search_similar
 AMBIG_DELTA = 0.04
 MIN_SCORE = 0.05
 TOPK_RETRIEVE = 50
-TOPK_CONTEXT = 8
+TOPK_CONTEXT = 4
 
 
 # ========= CLIENTES =========
@@ -59,7 +61,7 @@ class ShortMemory:
 MEM = ShortMemory(max_turns=4)
 
 # ========= STATE =========
-class RAGState(TypedDict, total=False):
+class AgentState(TypedDict, total=False):
     session_id: str
     query: str
     candidates: List[Dict[str, Any]]     # {persona_id, name, score, source_name}
@@ -103,6 +105,7 @@ def pinecone_query_people(queries: List[str]) -> List[Dict[str, Any]]:
                 top_k=5,
                 namespace=PINECONE_NAMESPACE,
                 debug=False,
+                index=PINECONE_PERSONA_INDEX,
                 ui=False,  # importante: así devuelve dicts con _id, _score, fields
             )
         )
@@ -129,7 +132,7 @@ def pinecone_query_people(queries: List[str]) -> List[Dict[str, Any]]:
             continue
         if k not in best or c["score"] > best[k]["score"]:
             best[k] = c
-
+            
     return sorted(best.values(), key=lambda x: x["score"], reverse=True)
 
 def pinecone_query_cv(query_text: str, persona_ids: List[str]) -> List[Dict[str, Any]]:
@@ -153,6 +156,7 @@ def pinecone_query_cv(query_text: str, persona_ids: List[str]) -> List[Dict[str,
             top_k=oversample,
             namespace=PINECONE_NAMESPACE,
             debug=False,
+            index=PINECONE_INDEX,
             ui=False,  # dicts con _id, _score, fields
         )
     )
@@ -202,7 +206,7 @@ def llm_chat(system: str, user: str) -> str:
     )
     return resp.choices[0].message.content.strip()
 
-def decide_coref_with_llm_node(state: RAGState) -> RAGState:
+def decide_coref_with_llm_node(state: AgentState) -> AgentState:
     session_id = state.get("session_id", "default")
     last_persona = MEM.last_persona_by_session.get(session_id)
     q = state["query"]
@@ -254,7 +258,7 @@ def llm_yesno(system: str, user: str) -> bool:
     return "yes" in text or "sí" in text or "si" in text
 
 # ========= NODOS =========
-def resolve_people_node(state: RAGState) -> RAGState:
+def resolve_people_node(state: AgentState) -> AgentState:
     """
     - Siempre busca candidatos en la vector DB a partir de state['query'].
     - EXCEPTO cuando venimos de una desambiguación y ya traemos 'candidates':
@@ -286,7 +290,7 @@ def resolve_people_node(state: RAGState) -> RAGState:
     
     return {**state, "candidates": candidates}
 
-def decide_disambiguation_node(state: RAGState) -> RAGState:
+def decide_disambiguation_node(state: AgentState) -> AgentState:
     cands = state.get("candidates", [])
     trace = {**state.get("trace", {})}
 
@@ -326,7 +330,7 @@ def decide_disambiguation_node(state: RAGState) -> RAGState:
     trace["decision"] = "clear_top1"
     return {**state, "persona_ids": [cands[0]["persona_id"]], "trace": trace}
 
-def ask_user_short_disambiguation_node(state: RAGState) -> RAGState:
+def ask_user_short_disambiguation_node(state: AgentState) -> AgentState:
     cands = state.get("candidates", [])[:3]  # top 2–3
     if not cands:
         return {**state, "answer": "No pude identificar a la persona.", "trace": {**state.get("trace", {}), "need_user_input": False}}
@@ -341,7 +345,7 @@ def ask_user_short_disambiguation_node(state: RAGState) -> RAGState:
     trace = {**state.get("trace", {}), "need_user_input": True, "disambiguation_options": [c["persona_id"] for c in cands]}
     return {**state, "answer": question, "trace": trace}
 
-def route_after_decision(state: RAGState) -> str:
+def route_after_decision(state: AgentState) -> str:
     tr = state.get("trace", {})
     if tr.get("decision") == "no_match":
         return "ask_user_short_disambiguation"  # o manejar de otra forma (p.ej. pedir nombre)
@@ -350,14 +354,14 @@ def route_after_decision(state: RAGState) -> str:
     # user_selected o clear_top1 → seguimos al retriever
     return "retrieve_cv_chunks"
 
-def retrieve_cv_chunks_node(state: RAGState) -> RAGState:
+def retrieve_cv_chunks_node(state: AgentState) -> AgentState:
     persona_ids = state.get("persona_ids", [])
     if not persona_ids:
         return {**state, "chunks": []}
     chunks = pinecone_query_cv(state["query"], persona_ids)
     return {**state, "chunks": chunks}
 
-def load_memory_node(state: RAGState) -> RAGState:
+def load_memory_node(state: AgentState) -> AgentState:
     session_id = state.get("session_id", "default")
     persona_ids = state.get("persona_ids", [])
     if not persona_ids:
@@ -367,7 +371,7 @@ def load_memory_node(state: RAGState) -> RAGState:
     history = MEM.get(session_id, persona_id)
     return {**state, "history": history}
 
-def generate_answer_node(state: RAGState) -> RAGState:
+def generate_answer_node(state: AgentState) -> AgentState:
     chunks = (state.get("chunks") or [])[:TOPK_CONTEXT]
     context = build_context(chunks)
     history_txt = render_history(state.get("history", []))
@@ -381,7 +385,7 @@ def generate_answer_node(state: RAGState) -> RAGState:
     answer = llm_chat(SYSTEM, prompt)
     return {**state, "answer": answer}
 
-def save_memory_node(state: RAGState) -> RAGState:
+def save_memory_node(state: AgentState) -> AgentState:
     session_id = state.get("session_id", "default")
     persona_ids = state.get("persona_ids", [])
     if persona_ids and state.get("answer"):
@@ -390,7 +394,7 @@ def save_memory_node(state: RAGState) -> RAGState:
 
 # ========= GRAFO =========
 def build_app():
-    g = StateGraph(RAGState)
+    g = StateGraph(AgentState)
     g.add_node("decide_coref_with_llm", decide_coref_with_llm_node) 
     g.add_node("resolve_people", resolve_people_node)
     g.add_node("decide_disambiguation", decide_disambiguation_node)
