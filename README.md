@@ -73,8 +73,8 @@ responder acorde.
 -   Claves/config:
     -   `GROQ_API_KEY` y `GROQ_LLM_MODEL` (p. ej.
         `llama-3.1-70b-versatile`)
-    -   `PINECONE_INDEX` (namespace de CVs)
-    -   `PINECONE_PERSONA_INDEX` (namespace de personas)
+    -   `PINECONE_INDEX` (indice de CVs)
+    -   `PINECONE_PERSONA_INDEX` (indice de personas)
 
 Podés definirlas en `src/config/settings.py` o vía variables de entorno.
 
@@ -83,21 +83,18 @@ Ejemplo de `.env` (opcional):
 ``` bash
 GROQ_API_KEY=...
 GROQ_LLM_MODEL=llama-3.1-70b-versatile
-PINECONE_INDEX=cv_index_namespace
-PINECONE_PERSONA_INDEX=people_index_namespace
 ```
 
 ------------------------------------------------------------------------
 
 ## Instalación
+Se utiliza uv como gestor de dependencias y de virtual envs a traves del uso de un Makefile en la raíz del repositorio. Las dependencias se listan en **pyproject.toml** asi como metadata de la aplicación y parametría de linter (ruff) y static code analysis (mypy)
 
 ``` bash
 git clone https://github.com/joagonzalez/ceia-nlp-II-tp-3
 cd ceia-nlp-II-tp-3
 
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+make install
 ```
 
 Configurar `src/config/settings.py` con tus claves y nombres de
@@ -109,13 +106,13 @@ Configurar `src/config/settings.py` con tus claves y nombres de
 
 ### 1) Cargar datos en la Vector DB (RAG)
 
-Este target ejecuta la carga/actualización de índices (personas y CVs):
+Este comando ejecuta la carga/actualización de índices (personas y CVs) utilizando el dataset de CVs que se encuentra en la carpeta **data/**:
 
 ``` bash
 make cli ARGS="load-data"
 ```
 
-> Si tus índices ya están creados y cargados, podés saltear este paso.
+> Si los índices ya están creados y cargados, se puede saltear este paso.
 
 ------------------------------------------------------------------------
 
@@ -159,8 +156,6 @@ Abrí en el navegador: http://0.0.0.0:8050
 -   Si hay desambiguación, el asistente **repregunta** y listará
     opciones. Escribí el **número** en el mismo input y presioná
     **Enviar**.
--   Estética con **Bootstrap Cards**, ejemplos clicables y spinner de
-    carga.
 
 ------------------------------------------------------------------------
 
@@ -221,9 +216,7 @@ Abrí en el navegador: http://0.0.0.0:8050
 
 ### C) Coreferencia (¿sigue hablando de la misma persona?)
 
--   Nodo `decide_coref_with_llm`: un LLM binario (yes/no) determina si
-    una query como "sus últimas experiencias" se refiere a la **misma
-    persona** del turno anterior.
+-   Nodo `decide_coref_with_llm`: una llamada a LLM que pide respuesta binaria (yes/no) determina si una query como "sus últimas experiencias" se refiere a la **misma     persona** del turno anterior.
 -   Si **sí** → `resolve_people` **no** busca y fija la **última persona
     activa**.
 -   Si **no** → se busca en el índice de personas y se desambigua si
