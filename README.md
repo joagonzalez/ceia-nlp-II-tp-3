@@ -1,4 +1,4 @@
-# Trabajo Práctico N°3 -- NLP2 (FIUBA)
+# CV Chatbot - RAG/Memory/Desambiguation/Multi-query
 
 **Asistente para análisis de Currículums con arquitectura de agentes,
 RAG y desambiguación por persona.**
