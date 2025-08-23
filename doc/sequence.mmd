@@ -1,0 +1,51 @@
+sequenceDiagram
+    autonumber
+    participant U as Usuario
+    participant G as Grafo (LangGraph)
+    participant L as Groq LLM
+    participant PI as Pinecone Personas
+    participant CI as Pinecone CVs
+    participant MEM as ShortMemory
+
+    %% Router común
+    U->>G: query
+    G->>G: classify_mode (extrae nombres)
+    Note over G: Regla simple → si hay ≥2 nombres ⇒ multi, si no ⇒ single
+
+    alt SINGLE (stateful, con memoria)
+        G->>G: decide_coref_with_llm (yes/no)
+        alt Reusar persona previa = yes
+            G->>G: resolve_people (usa last_persona, no consulta PI)
+        else Nueva persona (o sin coref)
+            G->>PI: resolve_people → pinecone_query_people(query)
+            PI-->>G: candidates (scores)
+            G->>G: decide_disambiguation
+            alt clear_top1
+                Note over G: persona_ids=[top1]
+            else ambiguous_top2 / no_match
+                G-->>U: ask_user_short_disambiguation (1/2/3 o nombre) 
+                Note over G: El flujo termina aquí hasta la respuesta del usuario
+            end
+        end
+
+        G->>CI: retrieve_cv_chunks(query, persona_ids)
+        CI-->>G: chunks relevantes
+        G->>MEM: reset_if_person_changed(session_id, persona_id)
+        MEM-->>G: ok / (no reset si no cambió)
+        G->>MEM: get(session_id, persona_id)
+        MEM-->>G: history (últ. N turnos)
+        G->>L: prompt(Contexto=chunks[0..K], Historia)
+        L-->>G: answer (con citas)
+        G->>MEM: append(session_id, persona_id, query, answer)
+        MEM-->>G: ok
+        G-->>U: answer
+
+    else MULTI (stateless, sin memoria)
+        Note over G: Se detectaron ≥2 nombres en la query
+        G->>G: resolve_people_multi (top1 por cada nombre)
+        G->>CI: retrieve_cv_chunks_multi(query, persona_ids[])  <!-- filtro $in por person_id -->
+        CI-->>G: chunks por persona
+        G->>L: prompt(Contexto repartido por persona)
+        L-->>G: answer (secciones ## por persona, con citas)
+        G-->>U: answer
+    end

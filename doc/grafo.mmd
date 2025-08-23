@@ -1,0 +1,33 @@
+graph TD;
+        __start__([<p>__start__</p>]):::first
+        classify_mode(classify_mode)
+        resolve_people_multi(resolve_people_multi)
+        retrieve_cv_chunks_multi(retrieve_cv_chunks_multi)
+        generate_answer_multi(generate_answer_multi)
+        decide_coref_with_llm(decide_coref_with_llm)
+        resolve_people(resolve_people)
+        decide_disambiguation(decide_disambiguation)
+        ask_user_short_disambiguation(ask_user_short_disambiguation)
+        retrieve_cv_chunks(retrieve_cv_chunks)
+        load_memory(load_memory)
+        generate_answer(generate_answer)
+        save_memory(save_memory)
+        __end__([<p>__end__</p>]):::last
+        __start__ --> classify_mode;
+        classify_mode -.-> decide_coref_with_llm;
+        classify_mode -.-> resolve_people_multi;
+        decide_coref_with_llm --> resolve_people;
+        decide_disambiguation -.-> ask_user_short_disambiguation;
+        decide_disambiguation -.-> retrieve_cv_chunks;
+        generate_answer --> save_memory;
+        load_memory --> generate_answer;
+        resolve_people --> decide_disambiguation;
+        resolve_people_multi --> retrieve_cv_chunks_multi;
+        retrieve_cv_chunks --> load_memory;
+        retrieve_cv_chunks_multi --> generate_answer_multi;
+        ask_user_short_disambiguation --> __end__;
+        generate_answer_multi --> __end__;
+        save_memory --> __end__;
+        classDef default fill:#f2f0ff,line-height:1.2
+        classDef first fill-opacity:0
+        classDef last fill:#bfb6fc
