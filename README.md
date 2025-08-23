@@ -252,4 +252,69 @@ Esto mejora la UX sin regex frágiles y evita repreguntas innecesarias.
     requirements.txt
     README.md
 
-------------------------------------------------------------------------
+## Diagramas de secuencia
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant G as Grafo LangGraph
+    participant L as Groq LLM
+    participant PI as Pinecone Personas
+    participant CI as Pinecone CVs
+    participant MEM as ShortMemory
+
+    U->>G: query (posible nueva persona)
+    G->>L: COREF_SYS + pregunta (clasificador yes/no)
+    L-->>G: "no" → reuse_last_persona=False
+    G->>G: decide_coref_with_llm → set reuse_last_persona=False
+
+    G->>PI: resolve_people → pinecone_query_people(query)
+    PI-->>G: candidates (lista con scores)
+
+    G->>G: decide_disambiguation
+    alt clear_top1 (score alto y no ambiguo)
+        G->>CI: retrieve_cv_chunks(query, persona_id)
+        CI-->>G: chunks relevantes
+        G->>MEM: reset_if_person_changed(session_id, persona_id)
+        MEM-->>G: buffers reseteados si cambió persona
+        G->>MEM: get(session_id, persona_id)
+        MEM-->>G: history (vacío o último N turnos de esa persona)
+        G->>L: prompt(Contexto+Historia)
+        L-->>G: answer (con citas)
+        G->>MEM: append(session_id, persona_id, query, answer)
+        MEM-->>G: ok
+        G-->>U: answer
+    else ambiguous_top2 o no_match
+        G-->>U: ask_user_short_disambiguation (muestra opciones) + END
+    end
+```
+
+
+```mermaid
+sequenceDiagram
+participant U as Usuario
+participant G as Grafo LangGraph
+participant MEM as ShortMemory
+participant PI as Pinecone Personas (opcional)
+participant CI as Pinecone CVs
+participant L as Groq LLM
+
+
+U->>G: query (follow-up sobre la misma persona)
+G->>L: COREF_SYS + pregunta (clasificador yes/no)
+L-->>G: "yes" → reuse_last_persona=True
+G->>G: decide_coref_with_llm → set reuse_last_persona
+G->>G: resolve_people (usa last_persona, no consulta PI)
+G->>G: decide_disambiguation → clear_top1 (persona_ids=[last_persona])
+G->>CI: retrieve_cv_chunks(query, persona_ids)
+CI-->>G: chunks (ordenados por score)
+G->>MEM: reset_if_person_changed(session_id, persona_id)
+MEM-->>G: (no resetea si persona_id no cambió)
+G->>MEM: get(session_id, persona_id)
+MEM-->>G: history (últ. N turnos)
+G->>L: prompt(Contexto: chunks[0:4], Historia)
+L-->>G: answer (con citas)
+G->>MEM: append(session_id, persona_id, query, answer)
+MEM-->>G: ok
+G-->>U: answer
+```

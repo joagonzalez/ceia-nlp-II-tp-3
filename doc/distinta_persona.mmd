@@ -1,0 +1,32 @@
+sequenceDiagram
+    participant U as Usuario
+    participant G as Grafo LangGraph
+    participant L as Groq LLM
+    participant PI as Pinecone Personas
+    participant CI as Pinecone CVs
+    participant MEM as ShortMemory
+
+    U->>G: query (posible nueva persona)
+    G->>L: COREF_SYS + pregunta (clasificador yes/no)
+    L-->>G: "no" → reuse_last_persona=False
+    G->>G: decide_coref_with_llm → set reuse_last_persona=False
+
+    G->>PI: resolve_people → pinecone_query_people(query)
+    PI-->>G: candidates (lista con scores)
+
+    G->>G: decide_disambiguation
+    alt clear_top1 (score alto y no ambiguo)
+        G->>CI: retrieve_cv_chunks(query, persona_id)
+        CI-->>G: chunks relevantes
+        G->>MEM: reset_if_person_changed(session_id, persona_id)
+        MEM-->>G: buffers reseteados si cambió persona
+        G->>MEM: get(session_id, persona_id)
+        MEM-->>G: history (vacío o último N turnos de esa persona)
+        G->>L: prompt(Contexto+Historia)
+        L-->>G: answer (con citas)
+        G->>MEM: append(session_id, persona_id, query, answer)
+        MEM-->>G: ok
+        G-->>U: answer
+    else ambiguous_top2 o no_match
+        G-->>U: ask_user_short_disambiguation (muestra opciones) + END
+    end
